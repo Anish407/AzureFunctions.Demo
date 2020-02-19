@@ -132,6 +132,7 @@ namespace AzureFunctions.Demo
         {
             try
             {
+                // Etgs as * will ignore the concurrency issues 
                 var toDeleteOperation = TableOperation.Delete(new TableEntity { PartitionKey = pkey, RowKey = rowkey, ETag = "*" });
                 try
                 {
