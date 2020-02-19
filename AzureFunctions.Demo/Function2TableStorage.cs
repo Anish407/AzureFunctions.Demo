@@ -93,22 +93,55 @@ namespace AzureFunctions.Demo
 
         }
 
-        [FunctionName("UpdateStudents")]
-        public static async Task<IActionResult> UpdateStudents(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "GetAllStudents/{rowkey}/{pkey}")] HttpRequest httpRequest,
-        [Table(tableName: "Student", partitionKey: "{pkey}", rowKey: "{rowkey}", Connection = "tableStorageConnection")] CloudTable table,
-        string rowkey,
-        string pkey,
-        ILogger log
-        )
+        //[FunctionName("UpdateStudents")]
+        //public static async Task<IActionResult> UpdateStudents(
+        //[HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "GetAllStudents/{rowkey}/{pkey}")] HttpRequest httpRequest,
+        //[Table(tableName: "Student", partitionKey: "{pkey}", rowKey: "{rowkey}", Connection = "tableStorageConnection")] CloudTable table,
+        //string rowkey,
+        //string pkey,
+        //ILogger log
+        //)
+        //{
+        //    try
+        //    {
+        //        // if this doesnt work then just pass the id and write table queries to get the existing record
+        //        // and overwrite the existing one, instead of passing the row key and primary key to the table binding
+        //        //Get data from table  // also complete delete
+        //        var query = new TableQuery<StudentTableEntity>();
+        //        var segment = await table.ExecuteQuerySegmentedAsync(query, null);
+
+        //        return new OkObjectResult(segment.ToList());
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new BadRequestObjectResult(ex.Message);
+        //    }
+
+        //}
+
+        //OR
+
+        [FunctionName("DeleteStudent")]
+        public static async Task<IActionResult> DeleteStudent(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "DeleteStudent/{rowkey}/{pkey}")] HttpRequest httpRequest,
+            [Table(tableName: "Student", Connection = "tableStorageConnection")] CloudTable table,
+            string rowkey,
+            string pkey,
+            ILogger log
+            )
         {
             try
             {
-                //Get data from table  // also complete delete
-                var query = new TableQuery<StudentTableEntity>();
-                var segment = await table.ExecuteQuerySegmentedAsync(query, null);
-
-                return new OkObjectResult(segment.ToList());
+                var toDeleteOperation = TableOperation.Delete(new TableEntity { PartitionKey = pkey, RowKey = rowkey, ETag = "*" });
+                try
+                {
+                    var res = await table.ExecuteAsync(toDeleteOperation);
+                    return new OkResult();
+                }
+                catch (Exception ex)
+                {
+                    return new BadRequestObjectResult(ex.Message);
+                }
             }
             catch (Exception ex)
             {
